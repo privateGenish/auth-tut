@@ -1,6 +1,9 @@
+import 'package:firebase_auht_client/models/authModel.dart';
 import 'package:firebase_auht_client/pages/authPage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,21 +31,28 @@ class _InitFirebaseState extends State<InitFirebase> {
   // initalizing the firebase app
   final Future<FirebaseApp> _initalize = Firebase.initializeApp();
 
+
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: FutureBuilder(
-        future: _initalize,
-        // initialData: InitialData,
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
-          if (snapshot.hasError) {
-            return _errorScreen();
-          }
-          if (snapshot.connectionState == ConnectionState.done) {
-            return AuthPage();
-          }
-          return _splashScreen();
-        },
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AuthModel>(create: (_) => AuthModel()),
+      ],
+      builder:(context, child)=> Material(
+        child: FutureBuilder(
+          future: _initalize,
+          // initialData: InitialData,
+          builder: (BuildContext context, AsyncSnapshot snapshot) {
+            if (snapshot.hasError) {
+              return _errorScreen();
+            }
+            if (snapshot.connectionState == ConnectionState.done) {
+              
+              return AuthPage();
+            }
+            return _splashScreen();
+          },
+        ),
       ),
     );
   }
@@ -57,7 +67,7 @@ class _InitFirebaseState extends State<InitFirebase> {
       child: Center(
           child: Column(
         children: [
-          FlutterLogo(),
+          FlutterLogo(size: 48,),
           Padding(
               padding: EdgeInsets.only(top: 10.0),
               child: Text("Sorry an error have been occurred"))
