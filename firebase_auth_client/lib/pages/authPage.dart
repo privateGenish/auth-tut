@@ -15,12 +15,11 @@ class AuthPage extends StatefulWidget {
 }
 
 class _AuthPageState extends State<AuthPage> {
-  // FirebaseAuth auth = FirebaseAuth.instance;
-  // late GoogleSignIn _googleSignIn;
+  final GlobalKey<ScaffoldMessengerState> _scaffoldKey =
+      GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
-    // _googleSignIn = GoogleSignIn(scopes: ['email']);
     super.initState();
   }
 
@@ -40,7 +39,6 @@ class _AuthPageState extends State<AuthPage> {
     return StreamBuilder(
       stream: Provider.of<AuthModel>(context).auth.authStateChanges(),
       builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
-        print("Strbldr: " + snapshot.data.toString());
         if (snapshot.data is User) {
           return HomePage();
         }
@@ -54,17 +52,24 @@ class _AuthPageState extends State<AuthPage> {
                 builder: (BuildContext context, AsyncSnapshot snapshot) {
                   if (snapshot.connectionState == ConnectionState.done &&
                       snapshot.data == null) {
-                    return _loginPage();
+                    return _loginPage(context);
                   }
                   return _splashScreen();
                 },
               );
             }
+            if (snapshot.data == 'FACEBOOK') {
+              if (Provider.of<AuthModel>(context).facebookAuth.accesskey !=
+                  null) {
+                Provider.of<AuthModel>(context)
+                    .handleFacebookSilentLogin(context);
+              }
+              return _splashScreen();
+            }
             if (snapshot.connectionState == ConnectionState.done &&
                 snapshot.data == 'NULL') {
-              return _loginPage();
+              return _loginPage(context);
             }
-            print('getting Auth Method');
             return _splashScreen();
           },
         );
@@ -72,28 +77,33 @@ class _AuthPageState extends State<AuthPage> {
     );
   }
 
-  Widget _loginPage() => Container(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text('Log in'),
-            Padding(padding: EdgeInsets.all(8.0)),
-            TextButton.icon(
-                onPressed: () async =>
-                    await Provider.of<AuthModel>(context, listen: false)
-                        .handleGoogleSignIn(),
-                icon: FaIcon(FontAwesomeIcons.google),
-                label: Text("Google")),
-            TextButton.icon(
-                onPressed: () {},
-                icon: FaIcon(FontAwesomeIcons.facebook),
-                label: Text("Facebook")),
-            TextButton.icon(
-                onPressed: () {},
-                icon: Icon(Icons.email),
-                label: Text("Email")),
-          ],
+  Widget _loginPage(BuildContext context) => Scaffold(
+        key: _scaffoldKey,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text('Log in'),
+              Padding(padding: EdgeInsets.all(8.0)),
+              TextButton.icon(
+                  onPressed: () async =>
+                      await Provider.of<AuthModel>(context, listen: false)
+                          .handleGoogleSignIn(context),
+                  icon: FaIcon(FontAwesomeIcons.google),
+                  label: Text("Google")),
+              TextButton.icon(
+                  onPressed: () async =>
+                      await Provider.of<AuthModel>(context, listen: false)
+                          .handleFacebookSignIn(context),
+                  icon: FaIcon(FontAwesomeIcons.facebook),
+                  label: Text("Facebook")),
+              TextButton.icon(
+                  onPressed: () {},
+                  icon: Icon(Icons.email),
+                  label: Text("Email")),
+            ],
+          ),
         ),
       );
 
