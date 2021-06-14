@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +10,7 @@ class AuthModel with ChangeNotifier {
   get auth => _auth;
 
   GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
-  handleGoogleSilentSignIn() async {
+  handleGoogleSilentSignIn(context) async {
     await _googleSignIn.signInSilently().then((googleUser) async {
       final pref = await SharedPreferences.getInstance();
 
@@ -30,11 +28,17 @@ class AuthModel with ChangeNotifier {
 
       // Once signed in, return the UserCredential
       await FirebaseAuth.instance.signInWithCredential(credential);
-
+      await _saveAccessToken();
       FirebaseAuth.instance.currentUser!.reload();
 
       pref.setString('Auth-Method', 'GOOGLE');
+    }).catchError((e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text("Google Sign In Failed!")));
+      print("Google Sign In Error: $e");
     });
+    ;
   }
 
   handleGoogleSignIn(context) async {
@@ -54,7 +58,7 @@ class AuthModel with ChangeNotifier {
 
       // Once signed in, return the UserCredential
       await FirebaseAuth.instance.signInWithCredential(credential);
-
+      await _saveAccessToken();
       FirebaseAuth.instance.currentUser!.reload();
 
       pref.setString('Auth-Method', 'GOOGLE');
@@ -70,7 +74,8 @@ class AuthModel with ChangeNotifier {
   get facebookAuth => _facebookAuth;
   handleFacebookSignIn(BuildContext context) async {
     final pref = await SharedPreferences.getInstance();
-    final LoginResult result = await _facebookAuth.login(loginBehavior: LoginBehavior.dialogOnly);
+    final LoginResult result =
+        await _facebookAuth.login(loginBehavior: LoginBehavior.dialogOnly);
     if (result.status == LoginStatus.success) {
       // Create a credential from the access token
       final OAuthCredential credential =
@@ -79,6 +84,7 @@ class AuthModel with ChangeNotifier {
       try {
         await _auth.signInWithCredential(credential);
         await pref.setString('Auth-Method', 'FACEBOOK');
+        await _saveAccessToken();
         await _auth.currentUser!.reload();
       } catch (e) {
         print('Facebook-Firebase Error: $e');
@@ -101,12 +107,24 @@ class AuthModel with ChangeNotifier {
       final pref = await SharedPreferences.getInstance();
       await _auth.signInWithCredential(credential);
       await pref.setString('Auth-Method', 'FACEBOOK');
+      await _saveAccessToken();
       await _auth.currentUser!.reload();
     } catch (e) {
       print('Facebook-Firebase Error: $e');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           behavior: SnackBarBehavior.floating,
           content: Text("Facebook Sign In Failed!")));
+    }
+  }
+
+  handleEmailSignIn({String? email, String? password}) async {
+    try {
+      await _auth.signInWithEmailAndPassword(
+          email: email!, password: password!);
+    }on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        return e.code;
+      }
     }
   }
 
@@ -123,5 +141,10 @@ class AuthModel with ChangeNotifier {
     }
 
     await auth.signOut().then((value) => pref.setString('Auth-Method', 'NULL'));
+  }
+
+  _saveAccessToken() async {
+    final pref = await SharedPreferences.getInstance();
+    pref.setString('Access-Token', await _auth.currentUser!.getIdToken());
   }
 }

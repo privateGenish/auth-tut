@@ -2,6 +2,7 @@ import 'package:firebase_auht_client/models/authModel.dart';
 import 'package:firebase_auht_client/pages/homePage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
@@ -48,7 +49,7 @@ class _AuthPageState extends State<AuthPage> {
             if (snapshot.data == 'GOOGLE') {
               return FutureBuilder(
                 future: Provider.of<AuthModel>(context, listen: false)
-                    .handleGoogleSilentSignIn(),
+                    .handleGoogleSilentSignIn(context),
                 builder: (BuildContext context, AsyncSnapshot snapshot) {
                   if (snapshot.connectionState == ConnectionState.done &&
                       snapshot.data == null) {
@@ -99,7 +100,8 @@ class _AuthPageState extends State<AuthPage> {
                   icon: FaIcon(FontAwesomeIcons.facebook),
                   label: Text("Facebook")),
               TextButton.icon(
-                  onPressed: () {},
+                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_context) => EmailPage(context: context))),
                   icon: Icon(Icons.email),
                   label: Text("Email")),
             ],
@@ -123,4 +125,87 @@ class _AuthPageState extends State<AuthPage> {
           ],
         ),
       );
+
+  Widget _emailRegisterScreen(context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                "Welcome abourd!",
+                style: Theme.of(context).textTheme.headline1,
+              ),
+            ]),
+      ),
+    );
+  }
+}
+
+class EmailPage extends StatefulWidget {
+  const EmailPage({
+    Key? key,
+    required this.context,
+  }) : super(key: key);
+
+  final BuildContext context;
+
+  @override
+  _EmailPageState createState() => _EmailPageState();
+}
+
+class _EmailPageState extends State<EmailPage> {
+  @override
+  Widget build(BuildContext _context) {
+    final GlobalKey<FormFieldState> _passwordKey = GlobalKey();
+    final GlobalKey<FormFieldState> _emailKey = GlobalKey();
+    return Material(
+      child: Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                TextFormField(
+                  key: _emailKey,
+                  decoration: InputDecoration(labelText: 'Email'),
+                ),
+                TextFormField(
+                  key: _passwordKey,
+                  decoration: InputDecoration(labelText: 'password'),
+                  validator: (str) {
+                    if (str == null || str.length < 8) {
+                      return 'Password is short';
+                    }
+                  },
+                ),
+                ElevatedButton.icon(
+                    onPressed: () async {
+                      if (_passwordKey.currentState!.validate()) {
+                        switch (await Provider.of<AuthModel>(widget.context,
+                                listen: false)
+                            .handleEmailSignIn(
+                                email: _emailKey.currentState!.value,
+                                password: _passwordKey.currentState!.value)) {
+                          case 'user-not-found':
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  behavior: SnackBarBehavior.floating,
+                                  content: Text("User Not Found!")));
+                            break;
+                        }
+                      }
+                    },
+                    icon: Icon(Icons.email),
+                    label: Text('Log in / Sign Up'))
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
