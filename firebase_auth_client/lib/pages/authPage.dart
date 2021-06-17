@@ -158,52 +158,122 @@ class EmailPage extends StatefulWidget {
 class _EmailPageState extends State<EmailPage> {
   @override
   Widget build(BuildContext _context) {
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          bottom: TabBar(tabs: [
+            Tab(text: 'Log in',),
+            Tab(text: 'Sign Up',)
+          ],),),
+        body: TabBarView(children: [
+          _loginPage(),
+          _signUpPage(),
+        ]),
+      ),
+    );
+  }
+
+  _signUpPage() {
+    final GlobalKey<FormFieldState> _passwordKey = GlobalKey();
+    final GlobalKey<FormFieldState> _rePasswordKey = GlobalKey();
+    final GlobalKey<FormFieldState> _emailKey = GlobalKey();
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            TextFormField(
+              key: _emailKey,
+              decoration: InputDecoration(labelText: 'Email'),
+            ),
+            TextFormField(
+              key: _passwordKey,
+              decoration: InputDecoration(labelText: 'password'),
+              validator: (str) {
+                if (str == null || str.length < 8) {
+                  return 'Password is short';
+                }
+              },
+            ),
+            TextFormField(
+              key: _rePasswordKey,
+              decoration: InputDecoration(labelText: 'password'),
+              validator: (str) {
+                if (str != _passwordKey.currentState!.value &&
+                    _passwordKey.currentState!.isValid) {
+                  return 'Password dont match';
+                }
+              },
+            ),
+            ElevatedButton.icon(
+                onPressed: () async {
+                  if (_passwordKey.currentState!.validate()) {
+                    switch (await Provider.of<AuthModel>(widget.context,
+                            listen: false)
+                        .handleEmailSignIn(
+                            email: _emailKey.currentState!.value,
+                            password: _passwordKey.currentState!.value)) {
+                      case 'user-not-found':
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            behavior: SnackBarBehavior.floating,
+                            content: Text("User Not Found!")));
+                        break;
+                    }
+                  }
+                },
+                icon: Icon(Icons.email),
+                label: Text('Sign Up'))
+          ],
+        ),
+      ),
+    );
+  }
+
+  _loginPage() {
     final GlobalKey<FormFieldState> _passwordKey = GlobalKey();
     final GlobalKey<FormFieldState> _emailKey = GlobalKey();
-    return Material(
-      child: Scaffold(
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                TextFormField(
-                  key: _emailKey,
-                  decoration: InputDecoration(labelText: 'Email'),
-                ),
-                TextFormField(
-                  key: _passwordKey,
-                  decoration: InputDecoration(labelText: 'password'),
-                  validator: (str) {
-                    if (str == null || str.length < 8) {
-                      return 'Password is short';
-                    }
-                  },
-                ),
-                ElevatedButton.icon(
-                    onPressed: () async {
-                      if (_passwordKey.currentState!.validate()) {
-                        switch (await Provider.of<AuthModel>(widget.context,
-                                listen: false)
-                            .handleEmailSignIn(
-                                email: _emailKey.currentState!.value,
-                                password: _passwordKey.currentState!.value)) {
-                          case 'user-not-found':
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  behavior: SnackBarBehavior.floating,
-                                  content: Text("User Not Found!")));
-                            break;
-                        }
-                      }
-                    },
-                    icon: Icon(Icons.email),
-                    label: Text('Log in / Sign Up'))
-              ],
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            TextFormField(
+              key: _emailKey,
+              decoration: InputDecoration(labelText: 'Email'),
             ),
-          ),
+            TextFormField(
+              key: _passwordKey,
+              decoration: InputDecoration(labelText: 'password'),
+              validator: (str) {
+                if (str == null || str.length < 8) {
+                  return 'Password is short';
+                }
+              },
+            ),
+            ElevatedButton.icon(
+                onPressed: () async {
+                  if (_passwordKey.currentState!.validate()) {
+                    switch (await Provider.of<AuthModel>(widget.context,
+                            listen: false)
+                        .handleEmailSignIn(
+                            email: _emailKey.currentState!.value,
+                            password: _passwordKey.currentState!.value)) {
+                      case 'user-not-found':
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            behavior: SnackBarBehavior.floating,
+                            content: Text("User Not Found!")));
+                        break;
+                    }
+                  }
+                },
+                icon: Icon(Icons.email),
+                label: Text('Log in'))
+          ],
         ),
       ),
     );

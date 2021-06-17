@@ -95,7 +95,7 @@ class AuthModel with ChangeNotifier {
     } else {
       print('Facebook Login Error: ${result.message}');
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Google Sign In Failed!")));
+          .showSnackBar(SnackBar(content: Text("Facebook Sign In Failed!")));
     }
   }
 
