@@ -137,7 +137,7 @@ class AuthModel with ChangeNotifier {
       final pref = await SharedPreferences.getInstance();
       await _auth.signInWithEmailAndPassword(
           email: email!, password: password!);
-      await pref.setString('Auth-Method', 'FACEBOOK');
+      await pref.setString('Auth-Method', 'NULL');
       await _auth.currentUser!.reload();
       Navigator.pop(context);
       Navigator.pop(context);
@@ -218,6 +218,45 @@ class AuthModel with ChangeNotifier {
         .signOut()
         .then((value) async => await pref.setString('Auth-Method', 'NULL'));
   }
+
+  handleDeleteUser(BuildContext context) async {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) => Dialog(
+                child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  new CircularProgressIndicator(),
+                  new Text("Loading"),
+                ],
+              ),
+            )));
+    try{
+      await _auth.currentUser!.delete();
+      Navigator.pop(context);
+      await _auth.currentUser!.reload().then((value) => Navigator.pop(context));
+    } on FirebaseAuthException catch (e){
+        switch (e.code) {
+          case 'requires-recent-login':
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('Please sign in again')));
+            break;
+          default: ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('User falied to delete! Error: ${e.code}')));
+        }
+    } catch (e){
+      print(e);
+      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      //     behavior: SnackBarBehavior.floating,
+      //     content: Text('User falied to delete!')));
+    }
+  }
+
 
   _saveAccessToken() async {
     final pref = await SharedPreferences.getInstance();

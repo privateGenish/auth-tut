@@ -1,12 +1,8 @@
-import 'dart:ffi';
-
 import 'package:firebase_auht_client/models/authModel.dart';
 import 'package:firebase_auht_client/pages/homePage.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -69,8 +65,9 @@ class _AuthPageState extends State<AuthPage> {
                   null) {
                 Provider.of<AuthModel>(context)
                     .handleFacebookSilentLogin(context);
+                return _splashScreen();
               }
-              return _splashScreen();
+              return _loginPage(context);
             }
             if (snapshot.connectionState == ConnectionState.done &&
                 snapshot.data == 'NULL') {
@@ -106,7 +103,7 @@ class _AuthPageState extends State<AuthPage> {
                   label: Text("Facebook")),
               TextButton.icon(
                   onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_context) => EmailPage(context: context))),
+                      builder: (_context) => EmailPage())),
                   icon: Icon(Icons.email),
                   label: Text("Email")),
             ],
@@ -135,10 +132,7 @@ class _AuthPageState extends State<AuthPage> {
 class EmailPage extends StatefulWidget {
   const EmailPage({
     Key? key,
-    required this.context,
   }) : super(key: key);
-
-  final BuildContext context;
 
   @override
   _EmailPageState createState() => _EmailPageState();
@@ -147,11 +141,9 @@ class EmailPage extends StatefulWidget {
 class _EmailPageState extends State<EmailPage> {
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider<AuthModel>(create:(_) => AuthModel())
-      ],
-          child: DefaultTabController(
+    return ChangeNotifierProvider<AuthModel>(
+      create: (_) => AuthModel(),
+      builder: (context, _) => DefaultTabController(
         length: 2,
         child: Scaffold(
           appBar: AppBar(
@@ -167,15 +159,15 @@ class _EmailPageState extends State<EmailPage> {
             ),
           ),
           body: TabBarView(children: [
-            _loginPage(),
-            _signUpPage(),
+            _loginPage(context),
+            _signUpPage(context),
           ]),
         ),
       ),
     );
   }
 
-  _signUpPage() {
+  _signUpPage(context) {
     final GlobalKey<FormFieldState> _passwordKey = GlobalKey();
     final GlobalKey<FormFieldState> _rePasswordKey = GlobalKey();
     final GlobalKey<FormFieldState> _emailKey = GlobalKey();
@@ -229,7 +221,7 @@ class _EmailPageState extends State<EmailPage> {
     );
   }
 
-  _loginPage() {
+  _loginPage(context) {
     final GlobalKey<FormFieldState> _passwordKey = GlobalKey();
     final GlobalKey<FormFieldState> _emailKey = GlobalKey();
     return Center(
@@ -255,17 +247,10 @@ class _EmailPageState extends State<EmailPage> {
             ElevatedButton.icon(
                 onPressed: () async {
                   if (_passwordKey.currentState!.validate()) {
-                    switch (await Provider.of<AuthModel>(widget.context,
-                            listen: false)
-                        .handleEmailSignIn(context,
-                            email: _emailKey.currentState!.value,
-                            password: _passwordKey.currentState!.value)) {
-                      case 'user-not-found':
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            behavior: SnackBarBehavior.floating,
-                            content: Text("User Not Found!")));
-                        break;
-                    }
+                    await Provider.of<AuthModel>(context, listen: false).handleEmailSignIn(context,
+                    email: _emailKey.currentState!.value,
+                    password: _passwordKey.currentState!.value
+                    );
                   }
                 },
                 icon: Icon(Icons.email),
@@ -275,8 +260,7 @@ class _EmailPageState extends State<EmailPage> {
                 child: TextButton.icon(
                     onPressed: () => Navigator.of(context).push(
                         MaterialPageRoute(
-                            builder: (context) =>
-                                _resetPassword())),
+                            builder: (context) => _resetPassword())),
                     icon: Icon(Icons.password),
                     label: Text("Forgot Password")))
           ],
@@ -289,7 +273,7 @@ class _EmailPageState extends State<EmailPage> {
     GlobalKey<FormFieldState> _emailKey = GlobalKey();
     return ChangeNotifierProvider(
       create: (_) => AuthModel(),
-          builder:(context,_)=> Scaffold(
+      builder: (context, _) => Scaffold(
         appBar: AppBar(
           title: Text('Reset Password'),
         ),
@@ -306,10 +290,11 @@ class _EmailPageState extends State<EmailPage> {
                 ),
                 ElevatedButton.icon(
                     onPressed: () async {
-                      _emailKey.currentState != null ?
-                          await Provider.of<AuthModel>(context, listen: false)
+                      _emailKey.currentState != null
+                          ? await Provider.of<AuthModel>(context, listen: false)
                               .handleResetPassword(context,
-                                  email: _emailKey.currentState!.value) : null;
+                                  email: _emailKey.currentState!.value)
+                          : null;
                     },
                     icon: Icon(Icons.email),
                     label: Text('reset password'))

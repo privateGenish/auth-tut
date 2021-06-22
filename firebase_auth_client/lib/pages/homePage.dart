@@ -20,12 +20,17 @@ class _HomePageState extends State<HomePage> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         TextButton.icon(
-            onPressed: () => Provider.of<AuthModel>(context, listen: false).handleSignOut(),
+            onPressed: () =>
+                Provider.of<AuthModel>(context, listen: false).handleSignOut(),
             icon: Icon(Icons.logout),
             label: Text("Log Out")),
+        Padding(padding: EdgeInsets.all(10.0)),
+        TextButton.icon(
+            onPressed: () => Provider.of<AuthModel>(context, listen: false)
+                .handleDeleteUser(context),
+            icon: Icon(Icons.delete),
+            label: Text('Delete User'))
       ],
     );
   }
-
-
 }
