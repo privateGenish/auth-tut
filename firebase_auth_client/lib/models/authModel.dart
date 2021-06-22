@@ -186,6 +186,22 @@ class AuthModel with ChangeNotifier {
     }
   }
 
+  handleResetPassword(BuildContext context, {@required email}) async {
+    print('Resetting password');
+    try {
+      await _auth.sendPasswordResetEmail(email: email).then((value) {
+        print('Sent!');
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            behavior: SnackBarBehavior.floating,
+            content: Text('Password Reset Email Sent!')));
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('Password Reset Failed!')));
+    }
+  }
+
   handleSignOut() async {
     final pref = await SharedPreferences.getInstance();
 

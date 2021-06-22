@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:firebase_auht_client/models/authModel.dart';
 import 'package:firebase_auht_client/pages/homePage.dart';
 import 'package:flutter/material.dart';
@@ -128,22 +130,6 @@ class _AuthPageState extends State<AuthPage> {
           ],
         ),
       );
-
-  Widget _emailRegisterScreen(context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                "Welcome abourd!",
-                style: Theme.of(context).textTheme.headline1,
-              ),
-            ]),
-      ),
-    );
-  }
 }
 
 class EmailPage extends StatefulWidget {
@@ -160,26 +146,31 @@ class EmailPage extends StatefulWidget {
 
 class _EmailPageState extends State<EmailPage> {
   @override
-  Widget build(BuildContext _context) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          bottom: TabBar(
-            tabs: [
-              Tab(
-                text: 'Log in',
-              ),
-              Tab(
-                text: 'Sign Up',
-              )
-            ],
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AuthModel>(create:(_) => AuthModel())
+      ],
+          child: DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            bottom: TabBar(
+              tabs: [
+                Tab(
+                  text: 'Log in',
+                ),
+                Tab(
+                  text: 'Sign Up',
+                )
+              ],
+            ),
           ),
+          body: TabBarView(children: [
+            _loginPage(),
+            _signUpPage(),
+          ]),
         ),
-        body: TabBarView(children: [
-          _loginPage(),
-          _signUpPage(),
-        ]),
       ),
     );
   }
@@ -224,7 +215,7 @@ class _EmailPageState extends State<EmailPage> {
                 onPressed: () async {
                   if (_passwordKey.currentState!.validate() &&
                       _rePasswordKey.currentState!.validate()) {
-                    await Provider.of<AuthModel>(widget.context, listen: false)
+                    await Provider.of<AuthModel>(context, listen: false)
                         .handleEmailRegister(context,
                             email: _emailKey.currentState!.value,
                             password: _passwordKey.currentState!.value);
@@ -278,8 +269,53 @@ class _EmailPageState extends State<EmailPage> {
                   }
                 },
                 icon: Icon(Icons.email),
-                label: Text('Log in'))
+                label: Text('Log in')),
+            Padding(
+                padding: EdgeInsets.all(10),
+                child: TextButton.icon(
+                    onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                _resetPassword())),
+                    icon: Icon(Icons.password),
+                    label: Text("Forgot Password")))
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _resetPassword() {
+    GlobalKey<FormFieldState> _emailKey = GlobalKey();
+    return ChangeNotifierProvider(
+      create: (_) => AuthModel(),
+          builder:(context,_)=> Scaffold(
+        appBar: AppBar(
+          title: Text('Reset Password'),
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                TextFormField(
+                  key: _emailKey,
+                  decoration: InputDecoration(labelText: 'Email'),
+                ),
+                ElevatedButton.icon(
+                    onPressed: () async {
+                      _emailKey.currentState != null ?
+                          await Provider.of<AuthModel>(context, listen: false)
+                              .handleResetPassword(context,
+                                  email: _emailKey.currentState!.value) : null;
+                    },
+                    icon: Icon(Icons.email),
+                    label: Text('reset password'))
+              ],
+            ),
+          ),
         ),
       ),
     );
