@@ -43,6 +43,7 @@ class _InitFirebaseState extends State<InitFirebase> {
           future: _initalize,
           // initialData: InitialData,
           builder: (BuildContext context, AsyncSnapshot snapshot) {
+            print(snapshot.data);
             if (snapshot.hasError) {
               return _errorScreen();
             }

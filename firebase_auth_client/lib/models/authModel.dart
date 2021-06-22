@@ -117,14 +117,72 @@ class AuthModel with ChangeNotifier {
     }
   }
 
-  handleEmailSignIn({String? email, String? password}) async {
+  handleEmailSignIn(context, {String? email, String? password}) async {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) => Dialog(
+                child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  new CircularProgressIndicator(),
+                  new Text("Loading"),
+                ],
+              ),
+            )));
     try {
+      print('Trying To log in!');
+      final pref = await SharedPreferences.getInstance();
       await _auth.signInWithEmailAndPassword(
           email: email!, password: password!);
-    }on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        return e.code;
+      await pref.setString('Auth-Method', 'FACEBOOK');
+      await _auth.currentUser!.reload();
+      Navigator.pop(context);
+      Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      Navigator.pop(context);
+      {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            behavior: SnackBarBehavior.floating, content: Text(e.code)));
       }
+      return e.code;
+    }
+  }
+
+  handleEmailRegister(BuildContext context,
+      {String? email, String? password}) async {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) => Dialog(
+                child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  new CircularProgressIndicator(),
+                  new Text("Loading"),
+                ],
+              ),
+            )));
+    try {
+      final pref = await SharedPreferences.getInstance();
+      await _auth.createUserWithEmailAndPassword(
+          email: email!, password: password!);
+      await pref.setString('Auth-Method', 'NULL');
+      print('again!');
+      await _auth.currentUser!.reload();
+      Navigator.pop(context);
+      Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      Navigator.pop(context);
+      {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            behavior: SnackBarBehavior.floating, content: Text(e.code)));
+      }
+      return e.code;
     }
   }
 
@@ -140,7 +198,9 @@ class AuthModel with ChangeNotifier {
       await _facebookAuth.logOut();
     }
 
-    await auth.signOut().then((value) => pref.setString('Auth-Method', 'NULL'));
+    await auth
+        .signOut()
+        .then((value) async => await pref.setString('Auth-Method', 'NULL'));
   }
 
   _saveAccessToken() async {

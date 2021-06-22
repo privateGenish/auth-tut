@@ -40,6 +40,9 @@ class _AuthPageState extends State<AuthPage> {
     return StreamBuilder(
       stream: Provider.of<AuthModel>(context).auth.authStateChanges(),
       builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return _splashScreen();
+        }
         if (snapshot.data is User) {
           return HomePage();
         }
@@ -162,10 +165,17 @@ class _EmailPageState extends State<EmailPage> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          bottom: TabBar(tabs: [
-            Tab(text: 'Log in',),
-            Tab(text: 'Sign Up',)
-          ],),),
+          bottom: TabBar(
+            tabs: [
+              Tab(
+                text: 'Log in',
+              ),
+              Tab(
+                text: 'Sign Up',
+              )
+            ],
+          ),
+        ),
         body: TabBarView(children: [
           _loginPage(),
           _signUpPage(),
@@ -199,10 +209,12 @@ class _EmailPageState extends State<EmailPage> {
               },
             ),
             TextFormField(
+              autofocus: false,
               key: _rePasswordKey,
               decoration: InputDecoration(labelText: 'password'),
               validator: (str) {
-                if (str != _passwordKey.currentState!.value &&
+                if (_passwordKey.currentState != null &&
+                    str != _passwordKey.currentState!.value &&
                     _passwordKey.currentState!.isValid) {
                   return 'Password dont match';
                 }
@@ -210,18 +222,12 @@ class _EmailPageState extends State<EmailPage> {
             ),
             ElevatedButton.icon(
                 onPressed: () async {
-                  if (_passwordKey.currentState!.validate()) {
-                    switch (await Provider.of<AuthModel>(widget.context,
-                            listen: false)
-                        .handleEmailSignIn(
+                  if (_passwordKey.currentState!.validate() &&
+                      _rePasswordKey.currentState!.validate()) {
+                    await Provider.of<AuthModel>(widget.context, listen: false)
+                        .handleEmailRegister(context,
                             email: _emailKey.currentState!.value,
-                            password: _passwordKey.currentState!.value)) {
-                      case 'user-not-found':
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            behavior: SnackBarBehavior.floating,
-                            content: Text("User Not Found!")));
-                        break;
-                    }
+                            password: _passwordKey.currentState!.value);
                   }
                 },
                 icon: Icon(Icons.email),
@@ -260,7 +266,7 @@ class _EmailPageState extends State<EmailPage> {
                   if (_passwordKey.currentState!.validate()) {
                     switch (await Provider.of<AuthModel>(widget.context,
                             listen: false)
-                        .handleEmailSignIn(
+                        .handleEmailSignIn(context,
                             email: _emailKey.currentState!.value,
                             password: _passwordKey.currentState!.value)) {
                       case 'user-not-found':
