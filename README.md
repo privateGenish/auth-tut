@@ -8,12 +8,12 @@
 
 
 ### TODO
-[x] Finish writing the client auth process
-[] Documenting 
-[] Implementing the token saving in the client
-[] Documenting
-[] Writing the server firebase MW
-[] Documenting 
-[] integrating the DB
-[] Documenting
+- [x] Finish writing the client auth process
+- [] Documenting 
+- [] Implementing the token saving in the client
+- [] Documenting
+- [] Writing the server firebase MW
+- [] Documenting 
+- [] integrating the DB
+- [] Documenting
 
