@@ -17,11 +17,7 @@ class _AuthPageState extends State<AuthPage> {
   final GlobalKey<ScaffoldMessengerState> _scaffoldKey =
       GlobalKey<ScaffoldMessengerState>();
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
+  /// A function to get the user's prefferd auth method [Facebook, Google, Etc].
   Future<String> _getAuthMethod() async {
     final pref = await SharedPreferences.getInstance();
     try {
@@ -29,22 +25,28 @@ class _AuthPageState extends State<AuthPage> {
       print(state);
       return state;
     } catch (e) {
+      //If getting the method failed for some reason
       return 'NULL';
     }
   }
 
   @override
   Widget build(BuildContext context) {
+  /// The user is refrenced the the home page or the login page by listening to the current auth state.
+  /// If the stream contains a [Firebase.User] it means that there is a user currently logged in. 
     return StreamBuilder(
+      // listening to the stream
       stream: Provider.of<AuthModel>(context).auth.authStateChanges(),
       builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return _splashScreen();
         }
         if (snapshot.data is User) {
+          // this can be whatever! 
           return HomePage();
         }
         return FutureBuilder(
+          /// getting the auth method is an async method, hence the [Futurebuilder]
           future: _getAuthMethod(),
           builder: (BuildContext context, AsyncSnapshot snapshot) {
             if (snapshot.data == 'GOOGLE') {
@@ -102,8 +104,8 @@ class _AuthPageState extends State<AuthPage> {
                   icon: FaIcon(FontAwesomeIcons.facebook),
                   label: Text("Facebook")),
               TextButton.icon(
-                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_context) => EmailPage())),
+                  onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_context) => EmailPage())),
                   icon: Icon(Icons.email),
                   label: Text("Email")),
             ],
@@ -247,10 +249,10 @@ class _EmailPageState extends State<EmailPage> {
             ElevatedButton.icon(
                 onPressed: () async {
                   if (_passwordKey.currentState!.validate()) {
-                    await Provider.of<AuthModel>(context, listen: false).handleEmailSignIn(context,
-                    email: _emailKey.currentState!.value,
-                    password: _passwordKey.currentState!.value
-                    );
+                    await Provider.of<AuthModel>(context, listen: false)
+                        .handleEmailSignIn(context,
+                            email: _emailKey.currentState!.value,
+                            password: _passwordKey.currentState!.value);
                   }
                 },
                 icon: Icon(Icons.email),

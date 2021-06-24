@@ -12,8 +12,10 @@
 - [ ] Documenting 
 - [ ] Implementing the token saving in the client
 - [ ] Documenting
+- [ ] Complete error handling. 
 - [ ] Writing the server firebase MW
 - [ ] Documenting 
 - [ ] integrating the DB
 - [ ] Documenting
+
 
