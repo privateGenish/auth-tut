@@ -9,7 +9,7 @@
 
 ### TODO
 - [x] Finish writing the client auth process
-- [ ] Documenting 
+- [x] Documenting 
 - [ ] Implementing the token saving in the client
 - [ ] Documenting
 - [ ] Complete error handling. 

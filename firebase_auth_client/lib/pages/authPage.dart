@@ -45,8 +45,11 @@ class _AuthPageState extends State<AuthPage> {
           // this can be whatever! 
           return HomePage();
         }
+  /// this [FutureBuilder] is for silent log in process. 
+  /// 
+  /// getting the auth method is an async method, hence the [Futurebuilder], and after reciving the recent
+  /// method each silent login in handled.
         return FutureBuilder(
-          /// getting the auth method is an async method, hence the [Futurebuilder]
           future: _getAuthMethod(),
           builder: (BuildContext context, AsyncSnapshot snapshot) {
             if (snapshot.data == 'GOOGLE') {
