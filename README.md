@@ -10,7 +10,7 @@
 ### TODO
 - [x] Finish writing the client auth process
 - [x] Documenting 
-- [ ] Implementing the token saving in the client
+- [x] Implementing the token saving in the client
 - [ ] Documenting
 - [ ] Complete error handling. 
 - [ ] Writing the server firebase MW

@@ -5,11 +5,21 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 
-
 /// I chose to use a provider model because i want to be able to call this methods from all over the app.
 class AuthModel with ChangeNotifier {
   FirebaseAuth _auth = FirebaseAuth.instance;
   get auth => _auth;
+
+  /// listening to the id token changes when initalizing the provider. Making in available updated and 
+  /// available through the entire app at all times.
+  /// 
+  /// using a simple Shared Prefrences to save the Access Token.
+  AuthModel() {
+    _auth.idTokenChanges().listen((user) {
+      user != null ? _saveAccessToken(user) : null;
+      // print(event);
+    });
+  }
 
   GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
   handleGoogleSilentSignIn(context) async {
@@ -30,7 +40,6 @@ class AuthModel with ChangeNotifier {
 
       // Once signed in, return the UserCredential
       await FirebaseAuth.instance.signInWithCredential(credential);
-      await _saveAccessToken();
       FirebaseAuth.instance.currentUser!.reload();
 
       pref.setString('Auth-Method', 'GOOGLE');
@@ -60,7 +69,6 @@ class AuthModel with ChangeNotifier {
 
       // Once signed in, return the UserCredential
       await FirebaseAuth.instance.signInWithCredential(credential);
-      await _saveAccessToken();
       FirebaseAuth.instance.currentUser!.reload();
 
       pref.setString('Auth-Method', 'GOOGLE');
@@ -86,7 +94,6 @@ class AuthModel with ChangeNotifier {
       try {
         await _auth.signInWithCredential(credential);
         await pref.setString('Auth-Method', 'FACEBOOK');
-        await _saveAccessToken();
         await _auth.currentUser!.reload();
       } catch (e) {
         print('Facebook-Firebase Error: $e');
@@ -109,7 +116,6 @@ class AuthModel with ChangeNotifier {
       final pref = await SharedPreferences.getInstance();
       await _auth.signInWithCredential(credential);
       await pref.setString('Auth-Method', 'FACEBOOK');
-      await _saveAccessToken();
       await _auth.currentUser!.reload();
     } catch (e) {
       print('Facebook-Firebase Error: $e');
@@ -236,22 +242,23 @@ class AuthModel with ChangeNotifier {
                 ],
               ),
             )));
-    try{
+    try {
       await _auth.currentUser!.delete();
       Navigator.pop(context);
       await _auth.currentUser!.reload().then((value) => Navigator.pop(context));
-    } on FirebaseAuthException catch (e){
-        switch (e.code) {
-          case 'requires-recent-login':
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          behavior: SnackBarBehavior.floating,
-          content: Text('Please sign in again')));
-            break;
-          default: ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          behavior: SnackBarBehavior.floating,
-          content: Text('User falied to delete! Error: ${e.code}')));
-        }
-    } catch (e){
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'requires-recent-login':
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              behavior: SnackBarBehavior.floating,
+              content: Text('Please sign in again')));
+          break;
+        default:
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              behavior: SnackBarBehavior.floating,
+              content: Text('User falied to delete! Error: ${e.code}')));
+      }
+    } catch (e) {
       print(e);
       // ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       //     behavior: SnackBarBehavior.floating,
@@ -259,9 +266,8 @@ class AuthModel with ChangeNotifier {
     }
   }
 
-
-  _saveAccessToken() async {
+  _saveAccessToken(User user) async {
     final pref = await SharedPreferences.getInstance();
-    pref.setString('Access-Token', await _auth.currentUser!.getIdToken());
+    pref.setString('Access-Token', await user.getIdToken());
   }
 }
