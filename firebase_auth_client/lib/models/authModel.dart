@@ -17,7 +17,6 @@ class AuthModel with ChangeNotifier {
   AuthModel() {
     _auth.idTokenChanges().listen((user) {
       user != null ? _saveAccessToken(user) : null;
-      // print(event);
     });
   }
 

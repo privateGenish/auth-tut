@@ -11,11 +11,8 @@
 - [x] Finish writing the client auth process
 - [x] Documenting 
 - [x] Implementing the token saving in the client
-- [ ] Documenting
-- [ ] Complete error handling. 
-- [ ] Writing the server firebase MW
-- [ ] Documenting 
-- [ ] integrating the DB
-- [ ] Documenting
+- [x] Documenting 
+- [x] Writing the server firebase MW
+- [x] Documenting 
 
 
