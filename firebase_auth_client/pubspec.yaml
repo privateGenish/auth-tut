@@ -28,6 +28,7 @@ dependencies:
   firebase_core: "^1.2.1"
   firebase_auth: "^1.3.0"
   font_awesome_flutter: ^9.0.0
+  http: ^0.13.3
   flutter:
     sdk: flutter
 

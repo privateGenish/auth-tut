@@ -6,16 +6,24 @@ admin.initializeApp({
 });
 
 exports.auth = async function (req, res, next) {
-  await admin
-    .auth()
-    .verifyIdToken(req.params.uid)
-    .then((v) => {  
-      if (v.uid == req.params.uid) {
-        next();
-      }
-    })
-    .catch((e) =>{ 
-      console.log("error!");
-      res.status(400).send(e)});
-  return;
+  console.log("Auth!");
+  console.log(req.headers.authorization)
+  try {
+    await admin
+      .auth()
+      .verifyIdToken(req.headers.authorization)
+      .then((v) => {
+        if (v.uid == req.params.uid) {
+          next();
+        }
+      })
+      .catch((e) => {
+        console.log(e);
+        res.status(400).send(e);
+      });
+    return;
+  } catch (e) {
+    console.log(e);
+    res.status(400).send(e);
+  }
 };
